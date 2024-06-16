@@ -1,5 +1,6 @@
 from pytube import YouTube
 import os
+from moviepy.video.io.VideoFileClip import VideoFileClip
 
 def progress(stream, chunk, bytes_remaining):
     # Calculate the total file size in MB
@@ -24,9 +25,24 @@ def download_video(url):
 
     # Download the video
     stream.download(output_path='./videos')
-
-    # Print when download is complete
+    
     print("Download complete!")
+    path_to_video = './videos/' + yt.title + '.mp4'
+    return path_to_video
 
-# Replace 'your_url' with the URL of the YouTube video you want to download
-download_video('https://www.youtube.com/watch?v=6djLgEFfn3M')
+def convert_to_seconds(time_str):
+    # Split the time string into hours, minutes, and seconds
+    h, m, s = map(int, time_str.split(':'))
+    # Convert to seconds
+    return h * 3600 + m * 60 + s
+
+def cut_video(input_video_path, time_ranges, output_video_path):
+    with VideoFileClip(input_video_path) as video:
+        for i, (start_time_str, end_time_str) in enumerate(time_ranges):
+            # Convert start and end times to seconds
+            start_time = convert_to_seconds(start_time_str)
+            end_time = convert_to_seconds(end_time_str)
+            # Cut the video
+            new = video.subclip(start_time, end_time)
+            # Save each part as a separate mp4 file
+            new.write_videofile(f"{output_video_path}_{i}.mp4", audio_codec='aac')
